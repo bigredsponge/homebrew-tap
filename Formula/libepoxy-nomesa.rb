@@ -9,6 +9,11 @@ class LibepoxyNomesa < Formula
     formula "libepoxy"
   end
 
+  bottle do
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/libepoxy-nomesa-1.5.10"
+    sha256 cellar: :any, x86_64_linux: "e0a62a15d1243372b975f8ad9a94cda3437439537cade3e8c19dcadb444a5bcc"
+  end
+
   # Core's libepoxy depends on freeglut, and so on Mesa and LLVM, although it loads GL
   # at run time and only needs Mesa's headers to compile.
   keg_only "it would conflict with Homebrew's libepoxy"
