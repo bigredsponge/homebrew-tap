@@ -9,6 +9,11 @@ class Gtk3Nomesa < Formula
     formula "gtk+3"
   end
 
+  bottle do
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/gtk3-nomesa-3.24.52"
+    sha256 x86_64_linux: "a1887bf9b57cde90e790b9f76377458dce892e43d5869b8c1bfca895a846f474"
+  end
+
   # Core's gtk+3 is built against core's libepoxy, so using libepoxy-nomesa needs a matching
   # GTK. This one leaves out what Emacs doesn't use (introspection, demos, examples, man pages)
   # and needs Mesa only to compile.
