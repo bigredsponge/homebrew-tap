@@ -6,6 +6,11 @@ class EmacsPgtk < Formula
   sha256 "1da5790d9580c81932b5bf700633114468da7b3412d69faa767daebf974f4586"
   license "GPL-3.0-or-later"
 
+  bottle do
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/emacs-pgtk-31.1"
+    sha256 x86_64_linux: "af4c0ac285e40d84c68ef8d61bf7013cab9bdb9abd43a5f4b4f22155b1582152"
+  end
+
   depends_on "pkgconf" => :build
   depends_on "texinfo" => :build
   depends_on "binutils"
