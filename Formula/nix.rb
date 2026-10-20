@@ -10,6 +10,11 @@ class Nix < Formula
     strategy :github_latest
   end
 
+  bottle do
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/nix-2.34.9"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "7498b45c4fac0dbbdd8399a653154b14927a554c3c05e9da932fd82377e08595"
+  end
+
   depends_on :linux
 
   on_linux do
