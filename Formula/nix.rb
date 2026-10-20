@@ -12,8 +12,8 @@ class Nix < Formula
   end
 
   bottle do
-    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/nix-2.34.9"
-    sha256 cellar: :any_skip_relocation, x86_64_linux: "7498b45c4fac0dbbdd8399a653154b14927a554c3c05e9da932fd82377e08595"
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/nix-2.34.9_1"
+    sha256 cellar: :any_skip_relocation, x86_64_linux: "a99e9ee09d80efe7fe964f74c66b64281629b41b3beccd84eeffef1a2faeea65"
   end
 
   depends_on :linux
