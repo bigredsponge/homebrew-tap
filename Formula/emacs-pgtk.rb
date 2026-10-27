@@ -5,6 +5,7 @@ class EmacsPgtk < Formula
   mirror "https://ftp.gnu.org/gnu/emacs/emacs-31.1.tar.xz"
   sha256 "1da5790d9580c81932b5bf700633114468da7b3412d69faa767daebf974f4586"
   license "GPL-3.0-or-later"
+  revision 1
 
   bottle do
     root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/emacs-pgtk-31.1"
@@ -16,6 +17,7 @@ class EmacsPgtk < Formula
   depends_on "binutils"
   depends_on "cairo"
   depends_on "dbus"
+  depends_on "dconf" # lets GTK read GNOME settings such as dark mode
   depends_on "fontconfig"
   depends_on "freetype"
   depends_on "gcc"
