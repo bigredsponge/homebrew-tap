@@ -5,6 +5,11 @@ class Dconf < Formula
   sha256 "e65c1b7867f836faad9f9ee04acf5c5a6cae2bbc784833fe093207e0cb590248"
   license "LGPL-2.1-or-later"
 
+  bottle do
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/dconf-51.0"
+    sha256 cellar: :any, x86_64_linux: "860b049b38fe77d3c3743da280b1887d024d095f66394ec0d028164feade26a2"
+  end
+
   # Homebrew/core has no dconf. Without its GIO module, Homebrew's GLib falls back to an
   # in-memory backend and GTK apps ignore desktop settings such as dark mode.
   depends_on "meson" => :build
