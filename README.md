@@ -1,18 +1,17 @@
-# Bigredsponge Tap
+# bigredsponge's Tap
 
-## How do I install these formulae?
+Some formulae of interest:
 
-`brew install bigredsponge/tap/<formula>`
+```
+brew tap bigredsponge/tap
+brew trust bigredsponge/tap
 
-Or `brew tap bigredsponge/tap` and then `brew install <formula>`.
+# Emacs with GTK+ and more
+brew install emacs-pgtk
 
-Or, in a `brew bundle` `Brewfile`:
-
-```ruby
-tap "bigredsponge/tap"
-brew "<formula>"
+# See https://github.com/bigredsponge/nix
+brew install nix
 ```
 
-## Documentation
-
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+## License
+[MIT License](./LICENSE)
