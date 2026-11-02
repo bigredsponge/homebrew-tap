@@ -10,7 +10,7 @@ brew trust bigredsponge/tap
 brew install emacs-pgtk
 
 # See https://github.com/bigredsponge/nix
-brew install nix
+brew install --cask nix
 ```
 
 ## License
