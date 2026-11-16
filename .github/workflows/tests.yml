@@ -48,6 +48,12 @@ jobs:
       - run: brew test-bot --only-setup
 
       - run: brew test-bot --only-tap-syntax
+
+      - name: Check upstream versions
+        env:
+          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
+        run: brew livecheck --tap="$TAP_NAME"
+
       - run: brew test-bot --only-formulae
         if: github.event_name == 'pull_request'
 
