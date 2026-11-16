@@ -5,7 +5,7 @@ class LibepoxyNomesa < Formula
   sha256 "072cda4b59dd098bba8c2363a6247299db1fa89411dc221c8b81b8ee8192e623"
   license "MIT"
 
-  # libepoxy doesn't use GNOME's even-numbered minor version scheme for stable releases.
+  # https://github.com/Homebrew/homebrew-core/blob/main/Formula/lib/libepoxy.rb
   livecheck do
     url :stable
     regex(/libepoxy[._-]v?(\d+(?:\.\d+)+)\.t/i)

@@ -5,6 +5,7 @@ class Gtk3Nomesa < Formula
   sha256 "80931fa472a77b9a164f6740e3c0b444fac6770054632d35a7ff9d679e5e7b9f"
   license "LGPL-2.0-or-later"
 
+  # https://github.com/Homebrew/homebrew-core/blob/main/Formula/g/gtk%2B3.rb
   livecheck do
     url :stable
     regex(/gtk\+?[._-](3\.([0-8]\d*?)?[02468](?:\.\d+)*?)\.t/i)
