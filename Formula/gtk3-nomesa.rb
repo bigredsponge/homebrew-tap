@@ -6,7 +6,8 @@ class Gtk3Nomesa < Formula
   license "LGPL-2.0-or-later"
 
   livecheck do
-    formula "gtk+3"
+    url :stable
+    regex(/gtk\+?[._-](3\.([0-8]\d*?)?[02468](?:\.\d+)*?)\.t/i)
   end
 
   bottle do
