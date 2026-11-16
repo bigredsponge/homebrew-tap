@@ -5,8 +5,10 @@ class LibepoxyNomesa < Formula
   sha256 "072cda4b59dd098bba8c2363a6247299db1fa89411dc221c8b81b8ee8192e623"
   license "MIT"
 
+  # https://github.com/Homebrew/homebrew-core/blob/main/Formula/lib/libepoxy.rb
   livecheck do
-    formula "libepoxy"
+    url :stable
+    regex(/libepoxy[._-]v?(\d+(?:\.\d+)+)\.t/i)
   end
 
   bottle do
