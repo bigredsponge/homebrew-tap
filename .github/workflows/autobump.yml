@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
       pull-requests: write
     steps:
       - name: Set up Homebrew
@@ -41,10 +40,22 @@ jobs:
           TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
         run: brew bump --no-fork --open-pr --bump-synced --tap="$TAP_NAME"
 
-      - name: Check linkage
+  linkage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
+
+      - name: Check linkage of bottles against current Homebrew/core
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           brew tap-info --json "$GITHUB_REPOSITORY" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
-          xargs brew linkage --test < formulae.txt > linkage.txt || (( $(gh issue list --search "Broken linkage in:title" --json number --jq length) )) ||
+          xargs brew linkage --test < formulae.txt | tee linkage.txt && exit 0
+          echo "Found by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> linkage.txt
+          if [[ "$(gh issue list --search 'Broken linkage in:title' --json number --jq length)" == 0 ]]; then
             gh issue create --title "Broken linkage" --body-file linkage.txt
+          fi
+          exit 1
