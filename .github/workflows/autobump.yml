@@ -46,16 +46,26 @@ jobs:
       issues: write
     steps:
       - name: Set up Homebrew
+        id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
 
-      - name: Check linkage of bottles against current Homebrew/core
+      - name: Install formulae from bottles
+        env:
+          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
+        run: brew tap-info --json "$TAP_NAME" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
+
+      - name: Check bottles against current Homebrew/core
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_DEVELOPER: 1
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: Bottles broken by Homebrew/core changes
+        shell: bash -euo pipefail {0} # no -x, which would put the trace in the issue
         run: |
-          brew tap-info --json "$GITHUB_REPOSITORY" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
-          xargs brew linkage --test < formulae.txt | tee linkage.txt && exit 0
-          echo "Found by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> linkage.txt
-          if [[ "$(gh issue list --search 'Broken linkage in:title' --json number --jq length)" == 0 ]]; then
-            gh issue create --title "Broken linkage" --body-file linkage.txt
+          issue="$(gh issue list --search "\"$TITLE\" in:title" --limit 1 --json number --jq '.[].number')"
+          if ! (xargs brew linkage --test < formulae.txt && xargs brew test < formulae.txt) 2>&1 | tee result.txt; then
+            echo "Found by $RUN_URL" >> result.txt
+            [[ -n "$issue" ]] || gh issue create --title "$TITLE" --body-file result.txt
+            exit 1
           fi
-          exit 1
+          [[ -z "$issue" ]] || gh issue close "$issue" --comment "Fixed as of $RUN_URL"
