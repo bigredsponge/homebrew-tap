@@ -1,0 +1,64 @@
+name: brew linkage
+
+# Homebrew/core rebuilds its own dependents when a library changes, but not this tap's, so a
+# core update can leave these bottles linked against libraries that no longer exist.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/linkage.yml
+  schedule:
+    # Every day at 20:40 UTC
+    - cron: 40 20 * * *
+  workflow_dispatch:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
+jobs:
+  linkage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
+
+      - name: Install formulae from bottles
+        env:
+          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
+        run: |
+          brew tap-info --json "$TAP_NAME" | jq -r '.[0].formula_names[]' > formulae.txt
+          xargs brew install --force-bottle < formulae.txt
+
+      - name: Check linkage
+        id: linkage
+        env:
+          HOMEBREW_DEVELOPER: 1
+        run: xargs brew linkage --test < formulae.txt 2>&1 | tee linkage.txt
+
+      - name: Open an issue
+        if: failure() && steps.linkage.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: Bottles have broken linkage
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [[ -n "$(gh issue list --repo "$GITHUB_REPOSITORY" --search "\"$TITLE\" in:title" --json number --jq '.[]')" ]]; then
+            exit 0
+          fi
+          {
+            echo "\`brew linkage --test\` failed in $RUN_URL against current Homebrew/core."
+            echo "Rebuild each broken formula with \`brew bump-revision --message \"for <dependency>\" <formula>\` in a PR."
+            echo
+            echo '```'
+            cat linkage.txt
+            echo '```'
+          } > body.md
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file body.md
