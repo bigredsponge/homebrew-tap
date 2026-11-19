@@ -1,0 +1,50 @@
+name: brew linkage
+
+# Homebrew/core rebuilds its own dependents when a library changes, but not this tap's
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/linkage.yml
+  schedule:
+    # Every day at 20:40 UTC
+    - cron: 40 20 * * *
+  workflow_dispatch:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash -xeuo pipefail {0}
+
+jobs:
+  linkage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
+
+      - name: Install formulae from bottles
+        env:
+          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
+        run: brew tap-info --json "$TAP_NAME" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
+
+      - name: Check bottles against current Homebrew/core
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_DEVELOPER: 1
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: Bottles broken by Homebrew/core changes
+        shell: bash -euo pipefail {0} # no -x, which would put the trace in the issue
+        run: |
+          issue="$(gh issue list --search "\"$TITLE\" in:title" --limit 1 --json number --jq '.[].number')"
+          if ! (xargs brew linkage --test < formulae.txt && xargs brew test < formulae.txt) 2>&1 | tee result.txt; then
+            echo "Found by $RUN_URL" >> result.txt
+            [[ -n "$issue" ]] || gh issue create --title "$TITLE" --body-file result.txt
+            exit 1
+          fi
+          [[ -z "$issue" ]] || gh issue close "$issue" --comment "Fixed as of $RUN_URL"
