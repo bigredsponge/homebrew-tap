@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
       pull-requests: write
     steps:
       - name: Set up Homebrew
@@ -39,3 +40,11 @@ jobs:
           HOMEBREW_GIT_COMMITTER_EMAIL: ${{ steps.git_setup.outputs.email }}
           TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
         run: brew bump --no-fork --open-pr --bump-synced --tap="$TAP_NAME"
+
+      - name: Check linkage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          brew tap-info --json "$GITHUB_REPOSITORY" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
+          xargs brew linkage --test < formulae.txt > linkage.txt || (( $(gh issue list --search "Broken linkage in:title" --json number --jq length) )) ||
+            gh issue create --title "Broken linkage" --body-file linkage.txt
