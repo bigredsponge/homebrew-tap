@@ -8,8 +8,8 @@ class EmacsPgtk < Formula
   revision 2
 
   bottle do
-    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/emacs-pgtk-31.1_1"
-    sha256 x86_64_linux: "ddfe64ddb05e398775eb56001c14a02ec7bb54af82485be0ab81a93d1b385442"
+    root_url "https://github.com/bigredsponge/homebrew-tap/releases/download/emacs-pgtk-31.1_2"
+    sha256 x86_64_linux: "9e5f75d790eca9ba78cf5e58c44c3f69f62e1f96ae92e384090fbfa2eb841808"
   end
 
   depends_on "pkgconf" => :build
