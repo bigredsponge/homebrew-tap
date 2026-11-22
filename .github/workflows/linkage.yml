@@ -19,29 +19,17 @@ defaults:
 jobs:
   linkage:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    timeout-minutes: 60
     steps:
       - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@c262868c096d909fc278daa87ed9772967331ea3 # 2026.11.02.1
+        id: brew
+        uses: Homebrew/actions/setup-homebrew@63a2d4d8d4193eab3e62b1b782ff3ab8408f5b29 # 2026.11.09.1
 
-      - name: Install formulae from bottles
+      - name: Check bottles
         env:
-          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
-        run: brew tap-info --json "$TAP_NAME" | jq -r '.[0].formula_names[]' | tee formulae.txt | xargs brew install --force-bottle
-
-      - name: Check bottles against current Homebrew/core
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_DEVELOPER: 1
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TITLE: Bottles broken by Homebrew/core changes
+          TAP: ${{ steps.brew.outputs.tap-name }}
         run: |
-          issue="$(gh issue list --search "\"$TITLE\" in:title" --limit 1 --json number --jq '.[].number')"
-          if ! (xargs brew linkage --test < formulae.txt && xargs brew test < formulae.txt) 2>&1 | tee result.txt; then
-            echo "Found by $RUN_URL" >> result.txt
-            [[ -n "$issue" ]] || gh issue create --title "$TITLE" --body-file result.txt
-            exit 1
-          fi
-          [[ -z "$issue" ]] || gh issue close "$issue" --comment "Fixed as of $RUN_URL"
+          mapfile -t formulae < <(brew tap-info --json "$TAP" | jq -r '.[0].formula_names[]')
+          brew install --force-bottle "${formulae[@]}"
+          brew linkage --test "${formulae[@]}"
+          brew test "${formulae[@]}"

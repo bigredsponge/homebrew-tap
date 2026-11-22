@@ -10,8 +10,6 @@ class Dconf < Formula
     sha256 cellar: :any, x86_64_linux: "860b049b38fe77d3c3743da280b1887d024d095f66394ec0d028164feade26a2"
   end
 
-  # Homebrew/core has no dconf. Without its GIO module, Homebrew's GLib falls back to an
-  # in-memory backend and GTK apps ignore desktop settings such as dark mode.
   depends_on "meson" => :build
   depends_on "ninja" => :build
   depends_on "pkgconf" => :build
@@ -19,18 +17,38 @@ class Dconf < Formula
   depends_on :linux
 
   def install
-    # gvdb is a small library bundled in the tarball, not packaged by Homebrew
+    # https://mesonbuild.com/Subprojects.html#commandline-options
     system "meson", "setup", "build", "--force-fallback-for=gvdb",
                                       "-Dbash_completion=false", "-Dman=false", "-Dvapi=false",
                                       *std_meson_args
     system "meson", "compile", "-C", "build", "--verbose"
     system "meson", "install", "-C", "build"
-    # Shared with other formulae's GIO modules, so don't link a cache that lists only ours
     rm lib/"gio/modules/giomodule.cache"
   end
 
   test do
-    assert_path_exists lib/"gio/modules/libdconfsettings.so"
-    system bin/"dconf", "help"
+    (testpath/"db.d/test").write <<~INI
+      [dconf/test]
+      enabled=true
+    INI
+    system bin/"dconf", "compile", testpath/"db", testpath/"db.d"
+
+    # https://manpages.debian.org/testing/dconf-cli/dconf.7.en.html#PROFILES
+    (testpath/"profile").write "file-db:#{testpath}/db\n"
+
+    (testpath/"dconf.test.gschema.xml").write <<~XML
+      <schemalist>
+        <schema id="dconf.test" path="/dconf/test/">
+          <key name="enabled" type="b"><default>false</default></key>
+        </schema>
+      </schemalist>
+    XML
+
+    glib = formula_opt_bin("glib")
+    system glib/"glib-compile-schemas", testpath
+
+    output = shell_output("env -i DCONF_PROFILE=#{testpath}/profile GSETTINGS_SCHEMA_DIR=#{testpath} " \
+                          "#{glib}/gsettings get dconf.test enabled")
+    assert_equal "true\n", output
   end
 end
